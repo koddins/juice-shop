@@ -11,7 +11,7 @@ PRE_COMMANDS:
   - command: npm install --prefer-offline --no-audit --no-fund --ignore-scripts
     cwd: workspace
     continue_if_failed: false
-  - command: npm --prefix frontend install --prefer-offline --no-audit --no-fund --ignore-scripts
+  - command: cd frontend && npm install --prefer-offline --no-audit --no-fund --ignore-scripts
     cwd: workspace
     continue_if_failed: false
 
