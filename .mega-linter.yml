@@ -3,31 +3,50 @@
 # Docs: https://megalinter.io/configuration/
 
 APPLY_FIXES: none
+VALIDATE_ALL_CODEBASE: true
 
-# Rely on flavor defaults, minus noisy / redundant linters for this repo
+# Install dependencies so the repo's own eslint/stylelint configs resolve their
+# plugins. Without this, flat-config ESLint fails on unresolvable imports.
+PRE_COMMANDS:
+  - command: npm ci --prefer-offline --no-audit --ignore-scripts
+    cwd: workspace
+    continue_if_failed: true
+  - command: npm --prefix frontend ci --prefer-offline --no-audit --ignore-scripts
+    cwd: workspace
+    continue_if_failed: true
+
+# Point linters at this repo's flat configs; MegaLinter only probes for the
+# legacy .eslintrc.* / .stylelintrc.* names and would otherwise stay inactive.
+JAVASCRIPT_ES_CONFIG_FILE: eslint.config.mjs
+TYPESCRIPT_ES_CONFIG_FILE: eslint.config.mjs
+JSX_ESLINT_CONFIG_FILE: eslint.config.mjs
+TSX_ESLINT_CONFIG_FILE: eslint.config.mjs
+CSS_STYLELINT_CONFIG_FILE: frontend/stylelint.config.mjs
+SCSS_STYLELINT_CONFIG_FILE: frontend/stylelint.config.mjs
+
+# Semgrep is inactive unless given a ruleset
+REPOSITORY_SEMGREP_ARGUMENTS: ["--config", "p/javascript", "--config", "p/typescript", "--config", "p/terraform"]
+
+# i18n corpus spans ~40 languages; spell checking is meaningless here
 DISABLE:
-  - COPYPASTE
   - SPELL
 
+# Conflicts with the repo's own eslint config
 DISABLE_LINTERS:
   - JAVASCRIPT_STANDARD
   - TYPESCRIPT_STANDARD
-  - REPOSITORY_DEVSKIM
-  - REPOSITORY_GITLEAKS
 
-# CodeQL already runs separately; keep MegaLinter focused on lint + IaC hygiene
 SHOW_ELAPSED_TIME: true
 FILEIO_REPORTER: false
 PRINT_ALPACA: false
-
-FLAVOR_SUGGESTIONS: false
-
+FLAVOR_SUGGESTIONS: true
 REPORT_OUTPUT_FOLDER: megalinter-reports
-
 SARIF_REPORTER: true
+MARKDOWN_SUMMARY_REPORTER: true
 
 FILTER_REGEX_EXCLUDE: (^|/)(node_modules|dist|build|coverage|vagrant|screenshots|\.git)/|/vendor/|\.min\.(js|css)$|^frontend/dist/
 
-# Fail the build only on blocking errors from these
+# Report but never gate on these
 DISABLE_ERRORS_LINTERS:
   - MARKDOWN_MARKDOWN_LINK_CHECK
+  - REPOSITORY_GRYPE
