@@ -1,0 +1,33 @@
+---
+# MegaLinter configuration
+# Docs: https://megalinter.io/configuration/
+
+APPLY_FIXES: none
+
+# Rely on flavor defaults, minus noisy / redundant linters for this repo
+DISABLE:
+  - COPYPASTE
+  - SPELL
+
+DISABLE_LINTERS:
+  - JAVASCRIPT_STANDARD
+  - TYPESCRIPT_STANDARD
+  - REPOSITORY_DEVSKIM
+  - REPOSITORY_GITLEAKS
+
+# CodeQL already runs separately; keep MegaLinter focused on lint + IaC hygiene
+SHOW_ELAPSED_TIME: true
+FILEIO_REPORTER: false
+PRINT_ALPACA: false
+
+FLAVOR_SUGGESTIONS: false
+
+REPORT_OUTPUT_FOLDER: megalinter-reports
+
+SARIF_REPORTER: true
+
+FILTER_REGEX_EXCLUDE: (^|/)(node_modules|dist|build|coverage|vagrant|screenshots|\.git)/|/vendor/|\.min\.(js|css)$|^frontend/dist/
+
+# Fail the build only on blocking errors from these
+DISABLE_ERRORS_LINTERS:
+  - MARKDOWN_MARKDOWN_LINK_CHECK
