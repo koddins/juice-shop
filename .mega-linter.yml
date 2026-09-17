@@ -8,10 +8,12 @@ VALIDATE_ALL_CODEBASE: true
 # Install dependencies (no lockfile in repo, so install not ci) so the repo's own eslint/stylelint configs resolve their
 # plugins. Without this, flat-config ESLint fails on unresolvable imports.
 PRE_COMMANDS:
-  - command: npm install --prefer-offline --no-audit --no-fund --ignore-scripts
+  # frontend first: once the root node_modules exists, npm's arborist walks up
+  # from frontend/ into a lockfile-less parent and dies with "edgesOut".
+  - command: cd frontend && npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
     cwd: workspace
-    continue_if_failed: false
-  - command: cd frontend && npm install --prefer-offline --no-audit --no-fund --ignore-scripts
+    continue_if_failed: true
+  - command: npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
     cwd: workspace
     continue_if_failed: false
 
