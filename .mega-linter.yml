@@ -5,35 +5,22 @@
 APPLY_FIXES: none
 VALIDATE_ALL_CODEBASE: true
 
-# Install dependencies (no lockfile in repo, so install not ci) so the repo's own eslint/stylelint configs resolve their
-# plugins. Without this, flat-config ESLint fails on unresolvable imports.
-PRE_COMMANDS:
-  # frontend first: once the root node_modules exists, npm's arborist walks up
-  # from frontend/ into a lockfile-less parent and dies with "edgesOut".
-  - command: cd frontend && npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
-    cwd: workspace
-    continue_if_failed: true
-  - command: npm install --no-audit --no-fund --ignore-scripts --legacy-peer-deps
-    cwd: workspace
-    continue_if_failed: false
-
-# Point linters at this repo's flat configs; MegaLinter only probes for the
-# legacy .eslintrc.* / .stylelintrc.* names and would otherwise stay inactive.
-# MegaLinter bundles eslint 8.57, which cannot read flat config and is invoked
-# with --eslintrc. Use the repo's own eslint 9 from node_modules instead.
-JAVASCRIPT_ES_CLI_EXECUTABLE: ["node_modules/.bin/eslint"]
-TYPESCRIPT_ES_CLI_EXECUTABLE: ["node_modules/.bin/eslint"]
-JSX_ESLINT_CLI_EXECUTABLE: ["node_modules/.bin/eslint"]
-TSX_ESLINT_CLI_EXECUTABLE: ["node_modules/.bin/eslint"]
-CSS_STYLELINT_CLI_EXECUTABLE: ["frontend/node_modules/.bin/stylelint"]
-SCSS_STYLELINT_CLI_EXECUTABLE: ["frontend/node_modules/.bin/stylelint"]
-
-JAVASCRIPT_ES_CONFIG_FILE: eslint.config.mjs
-TYPESCRIPT_ES_CONFIG_FILE: eslint.config.mjs
-JSX_ESLINT_CONFIG_FILE: eslint.config.mjs
-TSX_ESLINT_CONFIG_FILE: eslint.config.mjs
-CSS_STYLELINT_CONFIG_FILE: frontend/stylelint.config.mjs
-SCSS_STYLELINT_CONFIG_FILE: frontend/stylelint.config.mjs
+# ESLint and stylelint are deliberately NOT run here. MegaLinter bundles eslint
+# 8.57, which cannot read this repo's flat config, and making it work requires
+# installing node_modules, which in turn makes the project-scope security
+# scanners crawl it and blow past the job timeout. The repo's own ci.yml and
+# lint-fixer.yml already run `npm run lint` with the correct eslint 9.
+DISABLE_LINTERS:
+  - JAVASCRIPT_ES
+  - JAVASCRIPT_STANDARD
+  - JAVASCRIPT_PRETTIER
+  - TYPESCRIPT_ES
+  - TYPESCRIPT_STANDARD
+  - TYPESCRIPT_PRETTIER
+  - JSX_ESLINT
+  - TSX_ESLINT
+  - CSS_STYLELINT
+  - SCSS_STYLELINT
 
 # Semgrep is inactive unless given a ruleset
 REPOSITORY_SEMGREP_ARGUMENTS: ["--config", "p/javascript", "--config", "p/typescript", "--config", "p/terraform"]
@@ -41,11 +28,6 @@ REPOSITORY_SEMGREP_ARGUMENTS: ["--config", "p/javascript", "--config", "p/typesc
 # i18n corpus spans ~40 languages; spell checking is meaningless here
 DISABLE:
   - SPELL
-
-# Conflicts with the repo's own eslint config
-DISABLE_LINTERS:
-  - JAVASCRIPT_STANDARD
-  - TYPESCRIPT_STANDARD
 
 SHOW_ELAPSED_TIME: true
 FILEIO_REPORTER: false
